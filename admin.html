@@ -8,6 +8,10 @@
 
   <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Quill CSS & JS -->
+  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 </head>
 <body>
 <header>
@@ -25,7 +29,10 @@
 <!-- New Post Form -->
 <div id="new-post-form" style="display:none; margin-top: 1rem;">
   <input type="text" id="post-title" placeholder="Post Title">
-  <textarea id="post-content" placeholder="Post Content"></textarea>
+
+  <!-- Quill Editor -->
+  <div id="editor" style="height: 250px; background: #fff;"></div>
+
   <button id="publish-btn">Publish</button>
 </div>
 
@@ -34,20 +41,35 @@
 // Supabase setup
 // ----------------------
 const SUPABASE_URL = "https://jlipdvlisaljkraswxku.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsaXBkdmxpc2FsamtyYXN3eGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQzNzMzNjAsImV4cCI6MjA3OTk0OTM2MH0.KK6bv8aqGJPkURYY6SOB29cclLn9aJiORdArwINGMhI";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsaXBkdmxpc2FsamtyYXN3eGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQzNzMzNjAsImV4cCI6MjA3OTk0OTM2MH0.KK6bv8aqGJPkURYY6SOB29cclLn9aJiORdArwINGMhI"; 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 
 // ----------------------
+// Initialize Quill
+// ----------------------
+const quill = new Quill('#editor', {
+  theme: 'snow',
+  placeholder: 'Write your post here...',
+  modules: {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      ['link', 'image'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ align: [] }],
+      ['clean']
+    ]
+  }
+});
+
+// ----------------------
 // ADMIN LOGIN
 // ----------------------
 async function adminLogin() {
-  const emailInput = document.getElementById('admin-email');
-  const passInput = document.getElementById('admin-pass');
-
-  const email = emailInput?.value.trim();
-  const password = passInput?.value;
+  const email = document.getElementById('admin-email')?.value.trim();
+  const password = document.getElementById('admin-pass')?.value;
 
   if (!email || !password) return alert("Email and password required");
 
@@ -58,21 +80,16 @@ async function adminLogin() {
     currentUser = data.user;
     alert("Logged in as admin!");
 
-    // Hide login card
-    const loginContainer = document.getElementById('admin-login');
-    if (loginContainer) loginContainer.style.display = 'none';
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('new-post-form').style.display = 'block';
 
-    // Show new post form
-    const newPostForm = document.getElementById('new-post-form');
-    if (newPostForm) newPostForm.style.display = 'block';
-
-    // Optional: reload posts
     loadPosts();
   } catch (err) {
     alert(err.message);
     console.error(err);
   }
 }
+
 // ----------------------
 // CREATE NEW POST
 // ----------------------
@@ -80,141 +97,66 @@ async function newPost() {
   if (!currentUser) return alert("Admin login required!");
 
   const title = document.getElementById('post-title').value.trim();
-  const content = document.getElementById('post-content').value.trim();
+  const content = quill.root.innerHTML.trim();
 
   if (!title || !content) return alert("Title and content are required");
 
-  await db.from("posts").insert({ title, content });
-
-  document.getElementById('post-title').value = '';
-  document.getElementById('post-content').value = '';
-
-  loadPosts();
+  try {
+    await db.from("posts").insert({ title, content });
+    document.getElementById('post-title').value = '';
+    quill.setContents([]);
+    loadPosts();
+  } catch (err) {
+    console.error(err);
+    alert("Failed to publish post");
+  }
 }
 
 // ----------------------
 // LOAD POSTS
 // ----------------------
 async function loadPosts() {
-  const { data: posts } = await db
-    .from("posts")
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  const container = document.getElementById("posts");
-  container.innerHTML = '';
-
-  posts.forEach(post => {
-    const wrapper = document.createElement("div");
-    wrapper.className = "post";
-    wrapper.id = `post-${post.id}`;
-
-    wrapper.innerHTML = `
-      <div class="post-meta">${new Date(post.created_at).toLocaleString()}</div>
-      <div class="post-title">${post.title}</div>
-      <div class="post-body">${post.content}</div>
-
-      <div class="controls">
-        <button id="like-${post.id}" onclick="likePost('${post.id}')">♡ Like</button>
-        <span id="like-count-${post.id}" class="like-count"></span>
-        <button onclick="toggleCommentBox('${post.id}')">💬 Comment</button>
-      </div>
-
-      <div class="comment-box" id="comment-box-${post.id}" style="display:none;">
-        <input id="cname-${post.id}" placeholder="Name (optional)">
-        <textarea id="ctext-${post.id}" placeholder="Write a comment..."></textarea>
-        <button onclick="addComment('${post.id}')">Post</button>
-      </div>
-
-      <div class="comments-list" id="comments-${post.id}"></div>
-    `;
-
-    container.appendChild(wrapper);
-
-    loadLikes(post.id);
-    loadComments(post.id);
-  });
-}
-
-// ----------------------
-// LIKE SYSTEM
-// ----------------------
-async function likePost(postId) {
   try {
-    const userIp = await fetch("https://api64.ipify.org?format=json")
-      .then(r => r.json())
-      .then(r => r.ip);
+    const { data: posts } = await db
+      .from("posts")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-    await db.from("likes").insert({ post_id: postId, user_ip: userIp });
-    loadLikes(postId);
+    const container = document.getElementById("posts");
+    if (!container) return;
+    container.innerHTML = '';
+
+    posts.forEach(post => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "post";
+      wrapper.id = `post-${post.id}`;
+      wrapper.innerHTML = `
+        <div class="post-meta">${new Date(post.created_at).toLocaleString()}</div>
+        <div class="post-title">${post.title}</div>
+        <div class="post-body">${post.content}</div>
+      `;
+      container.appendChild(wrapper);
+    });
   } catch (err) {
     console.error(err);
   }
 }
 
-async function loadLikes(postId) {
-  const { count } = await db
-    .from("likes")
-    .select("*", { count: "exact", head: true })
-    .eq("post_id", postId);
-
-  const countEl = document.getElementById(`like-count-${postId}`);
-  if (countEl) countEl.textContent = `${count} likes`;
-}
-
 // ----------------------
-// COMMENT SYSTEM
+// GLOBAL FUNCTIONS
 // ----------------------
-async function addComment(postId) {
-  const name = document.getElementById(`cname-${postId}`).value || "Anonymous";
-  const comment = document.getElementById(`ctext-${postId}`).value.trim();
-  if (!comment) return alert("Comment cannot be empty");
-
-  await db.from("comments").insert({ post_id: postId, name, comment });
-
-  document.getElementById(`cname-${postId}`).value = '';
-  document.getElementById(`ctext-${postId}`).value = '';
-
-  loadComments(postId);
-}
-
-async function loadComments(postId) {
-  const { data } = await db
-    .from("comments")
-    .select("*")
-    .eq("post_id", postId)
-    .order("created_at", { ascending: true });
-
-  const container = document.getElementById(`comments-${postId}`);
-  container.innerHTML = data.map(c => `<p><strong>${c.name}</strong>: ${c.comment}</p>`).join('');
-}
-
-// ----------------------
-// HELPERS
-// ----------------------
-function toggleCommentBox(postId) {
-  const box = document.getElementById(`comment-box-${postId}`);
-  box.style.display = box.style.display === "none" ? "block" : "none";
-}
-
-// ----------------------
-// GLOBAL FUNCTIONS (for onclick)
 window.adminLogin = adminLogin;
 window.newPost = newPost;
 window.loadPosts = loadPosts;
-window.likePost = likePost;
-window.addComment = addComment;
-window.toggleCommentBox = toggleCommentBox;
-
-// ----------------------
-// INITIAL PAGE LOAD
-document.addEventListener("DOMContentLoaded", loadPosts);
 
 // ----------------------
 // BUTTON EVENTS
+// ----------------------
 document.getElementById('login-btn').addEventListener('click', adminLogin);
 document.getElementById('publish-btn').addEventListener('click', newPost);
 
+// Load posts on page (optional)
+document.addEventListener("DOMContentLoaded", loadPosts);
 </script>
 </body>
 </html>
