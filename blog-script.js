@@ -17,19 +17,46 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Comments
+// Comments with timestamps + editing
 function submitComment(postId) {
   const textarea = document.querySelector(`#comment-input-${postId}`);
   const text = textarea.value.trim();
   if (!text) return;
 
+  const now = new Date();
+  const dateStr = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+
   const list = document.querySelector(`#comments-${postId}`);
   const div = document.createElement("div");
   div.className = "comment";
-  div.textContent = text;
-  list.appendChild(div);
 
+  const id = Date.now();
+
+  div.setAttribute("data-comment-id", id);
+  div.innerHTML = `
+    <div class="comment-text">${text}</div>
+    <div class="comment-meta">Posted on ${dateStr}</div>
+    <button onclick="editComment(${postId}, ${id})">Edit</button>
+  `;
+
+  list.appendChild(div);
   textarea.value = "";
+}
+
+function editComment(postId, commentId) {
+  const div = document.querySelector(`[data-comment-id='${commentId}']`);
+  const textEl = div.querySelector('.comment-text');
+  const metaEl = div.querySelector('.comment-meta');
+
+  const current = textEl.textContent;
+  const updated = prompt("Edit your comment:", current);
+  if (!updated) return;
+
+  textEl.textContent = updated;
+
+  const now = new Date();
+  const dateStr = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+  metaEl.textContent = `Edited on ${dateStr}`;
 }
 
 // Simple admin posting (client-side only)
