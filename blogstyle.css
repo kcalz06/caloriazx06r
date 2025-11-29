@@ -1,18 +1,16 @@
-/* Basic styling for the single-author Tumblr‑style blog */
-
 body {
   margin: 0;
   padding: 0;
   font-family: Arial, sans-serif;
-  background: #2D2D2E;
-  color: #222;
+  background: #2D2D3B; /* dark blue-gray */
+  color: #EDEDED;       /* light text */
 }
 
 header {
   position: sticky;
   top: 0;
-  background: ##323234;
-  border-bottom: 1px solid #ddd;
+  background: #32334A; /* slightly darker header */
+  border-bottom: 1px solid #444;
   padding: 12px 20px;
   display: flex;
   justify-content: space-between;
@@ -23,6 +21,7 @@ header {
 header h1 {
   margin: 0;
   font-size: 20px;
+  color: #F0F0F0;
 }
 
 header a {
@@ -48,11 +47,12 @@ header a {
 
 .post {
   break-inside: avoid;
-  background: #1E1E1E;
+  background: #3A3A52; /* darker post background */
   padding: 15px;
   margin-bottom: 20px;
   border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  color: #EDEDED;
 }
 
 .post img {
@@ -63,7 +63,7 @@ header a {
 
 .post-meta {
   font-size: 12px;
-  color: #666;
+  color: #AAA;
   margin-bottom: 10px;
 }
 
@@ -71,6 +71,16 @@ header a {
   font-weight: bold;
   margin-bottom: 8px;
   font-size: 16px;
+  color: #F0F0F0;
+}
+
+.post-title a {
+  color: #F0F0F0;
+  text-decoration: none;
+}
+
+.post-title a:hover {
+  text-decoration: underline;
 }
 
 .controls {
@@ -84,7 +94,7 @@ header a {
   border: none;
   background: none;
   cursor: pointer;
-  color: #4C7097;
+  color: #8AB4F8;
   padding: 0;
 }
 
@@ -96,17 +106,20 @@ header a {
   margin-top: 10px;
 }
 
-.comment-box textarea {
+.comment-box textarea,
+.comment-box input {
   width: 100%;
   border-radius: 6px;
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #555;
+  background-color: #2D2D3B;
+  color: #EDEDED;
   resize: vertical;
 }
 
 .comment-box button {
   margin-top: 6px;
-  background: #4C7097;
+  background: #8AB4F8;
   border: none;
   padding: 8px 12px;
   border-radius: 6px;
@@ -117,12 +130,13 @@ header a {
 .comments-list {
   margin-top: 10px;
   font-size: 13px;
-  color: #333;
+  color: #DDD;
 }
 
 .comments-list .comment {
-  background: #C1C5E2;
+  background: #4C4F66;
   padding: 8px;
   border-radius: 6px;
   margin-bottom: 6px;
+  color: #EDEDED;
 }
