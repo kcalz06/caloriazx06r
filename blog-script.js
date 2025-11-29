@@ -8,72 +8,33 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 
 // ----------------------
-// INITIAL LOAD
+// UTILITY FUNCTIONS
 // ----------------------
-document.addEventListener("DOMContentLoaded", () => {
-  loadPosts(); // always load posts, public
-  document.getElementById('new-post-form').style.display = 'none'; // hide new post form initially
-});
-
-// ----------------------
-// ADMIN LOGIN
-// ----------------------
-async function adminLogin() {
-  const email = prompt("Enter admin email:");
-  const password = prompt("Enter admin password:");
-
-  const { data, error } = await db.auth.signInWithPassword({ email, password });
-  if (error) return alert(error.message);
-
-  currentUser = data.user;
-  alert("Logged in as admin!");
-  
-  // Show new post link/form
-  document.getElementById('new-post-form').style.display = 'block';
-  document.querySelector("a[href='#'][onclick='showNewPostForm()']").style.display = 'inline';
-}
-
-// ----------------------
-// SHOW NEW POST FORM (Optional click)
-function showNewPostForm() {
-  if (!currentUser) return alert("Login first!");
-  document.getElementById('new-post-form').style.display = 'block';
-}
-
-// ----------------------
-// CREATE NEW POST
-// ----------------------
-async function newPost() {
-  if (!currentUser) return alert("Admin login required!");
-
-  const title = document.getElementById('post-title').value.trim();
-  const content = document.getElementById('post-content').value.trim();
-
-  if (!title || !content) return alert("Title and content required!");
-
-  await db.from("posts").insert({ title, content });
-
-  // Clear input
-  document.getElementById('post-title').value = '';
-  document.getElementById('post-content').value = '';
-
-  loadPosts(); // reload posts
+function toggleCommentBox(postId) {
+  const box = document.getElementById(`comment-box-${postId}`);
+  box.style.display = box.style.display === "none" ? "block" : "none";
 }
 
 // ----------------------
 // LOAD POSTS
 // ----------------------
 async function loadPosts() {
-  const { data: posts } = await db.from("posts").select("*").order("created_at", { ascending: false });
-  const container = document.querySelector(".posts");
+  const { data: posts } = await db
+    .from("posts")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  const container = document.getElementById("posts");
+  if (!container) return; // if no posts container, exit
   container.innerHTML = '';
 
   posts.forEach(post => {
     const wrapper = document.createElement("div");
     wrapper.className = "post";
     wrapper.id = `post-${post.id}`;
+
     wrapper.innerHTML = `
-      <div class="post-meta">Posted • ${new Date(post.created_at).toLocaleString()}</div>
+      <div class="post-meta">${new Date(post.created_at).toLocaleString()}</div>
       <div class="post-title">${post.title}</div>
       <div class="post-body">${post.content}</div>
 
@@ -84,13 +45,14 @@ async function loadPosts() {
       </div>
 
       <div class="comment-box" id="comment-box-${post.id}" style="display:none;">
-        <input id="cname-${post.id}" placeholder="Name">
+        <input id="cname-${post.id}" placeholder="Name (optional)">
         <textarea id="ctext-${post.id}" placeholder="Write a comment..."></textarea>
         <button onclick="addComment('${post.id}')">Post</button>
       </div>
 
       <div class="comments-list" id="comments-${post.id}"></div>
     `;
+
     container.appendChild(wrapper);
 
     loadLikes(post.id);
@@ -102,14 +64,25 @@ async function loadPosts() {
 // LIKE SYSTEM
 // ----------------------
 async function likePost(postId) {
-  const userIp = await fetch("https://api64.ipify.org?format=json").then(r => r.json()).then(r => r.ip);
-  await db.from("likes").insert({ post_id: postId, user_ip: userIp });
-  loadLikes(postId);
+  try {
+    const userIp = await fetch("https://api64.ipify.org?format=json")
+      .then(r => r.json())
+      .then(r => r.ip);
+
+    await db.from("likes").insert({ post_id: postId, user_ip: userIp });
+    loadLikes(postId);
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 async function loadLikes(postId) {
-  const { count } = await db.from("likes").select("*", { count: "exact", head: true }).eq("post_id", postId);
-  const countEl = document.querySelector(`#like-count-${postId}`);
+  const { count } = await db
+    .from("likes")
+    .select("*", { count: "exact", head: true })
+    .eq("post_id", postId);
+
+  const countEl = document.getElementById(`like-count-${postId}`);
   if (countEl) countEl.textContent = `${count} likes`;
 }
 
@@ -117,26 +90,70 @@ async function loadLikes(postId) {
 // COMMENT SYSTEM
 // ----------------------
 async function addComment(postId) {
-  const name = document.querySelector(`#cname-${postId}`).value || "Anonymous";
-  const comment = document.querySelector(`#ctext-${postId}`).value;
+  const name = document.getElementById(`cname-${postId}`).value || "Anonymous";
+  const comment = document.getElementById(`ctext-${postId}`).value.trim();
   if (!comment) return alert("Comment cannot be empty");
 
   await db.from("comments").insert({ post_id: postId, name, comment });
-  document.querySelector(`#cname-${postId}`).value = '';
-  document.querySelector(`#ctext-${postId}`).value = '';
+
+  document.getElementById(`cname-${postId}`).value = '';
+  document.getElementById(`ctext-${postId}`).value = '';
+
   loadComments(postId);
 }
 
 async function loadComments(postId) {
-  const { data } = await db.from("comments").select("*").eq("post_id", postId).order("created_at", { ascending: true });
-  const container = document.querySelector(`#comments-${postId}`);
+  const { data } = await db
+    .from("comments")
+    .select("*")
+    .eq("post_id", postId)
+    .order("created_at", { ascending: true });
+
+  const container = document.getElementById(`comments-${postId}`);
   container.innerHTML = data.map(c => `<p><strong>${c.name}</strong>: ${c.comment}</p>`).join('');
 }
 
 // ----------------------
-// HELPERS
+// ADMIN LOGIN
 // ----------------------
-function toggleCommentBox(postId) {
-  const box = document.getElementById(`comment-box-${postId}`);
-  box.style.display = box.style.display === "none" ? "block" : "none";
+async function adminLogin() {
+  const email = document.getElementById('admin-email').value;
+  const password = document.getElementById('admin-pass').value;
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password });
+  if (error) return alert(error.message);
+
+  currentUser = data.user;
+  alert("Logged in as admin!");
+
+  // show new post form after login
+  const newPostForm = document.getElementById('new-post-form');
+  if (newPostForm) newPostForm.style.display = 'block';
+
+  const loginForm = document.getElementById('admin-login');
+  if (loginForm) loginForm.style.display = 'none';
 }
+
+// ----------------------
+// CREATE NEW POST
+// ----------------------
+async function newPost() {
+  if (!currentUser) return alert("Admin login required!");
+
+  const title = document.getElementById('post-title').value.trim();
+  const content = document.getElementById('post-content').value.trim();
+
+  if (!title || !content) return alert("Title and content are required");
+
+  await db.from("posts").insert({ title, content });
+
+  document.getElementById('post-title').value = '';
+  document.getElementById('post-content').value = '';
+
+  loadPosts();
+}
+
+// ----------------------
+// INITIAL PAGE LOAD
+// ----------------------
+document.addEventListener("DOMContentLoaded", loadPosts);
