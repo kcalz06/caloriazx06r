@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - My Vlog</title>
+  <link rel="stylesheet" href="blogstyle.css">
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+<header>
+  <h1>Admin Dashboard</h1>
+  <a href="index.html">Go to Blog</a>
+</header>
+
+<!-- Admin login -->
+<div id="admin-login">
+  <input type="email" id="admin-email" placeholder="Email">
+  <input type="password" id="admin-pass" placeholder="Password">
+  <button onclick="adminLogin()">Login</button>
+</div>
+
+<!-- New Post Form -->
+<div id="new-post-form" style="display:none; margin-top: 1rem;">
+  <input type="text" id="post-title" placeholder="Post Title">
+  <textarea id="post-content" placeholder="Post Content"></textarea>
+  <button onclick="newPost()">Publish</button>
+</div>
+
+<!-- Posts -->
+<div class="container">
+  <div class="posts" id="posts"></div>
+</div>
+
+<script>
+// ----------------------
+// Supabase setup
+// ----------------------
+const SUPABASE_URL = "https://jlipdvlisaljkraswxku.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsaXBkdmxpc2FsamtyYXN3eGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQzNzMzNjAsImV4cCI6MjA3OTk0OTM2MH0.KK6bv8aqGJPkURYY6SOB29cclLn9aJiORdArwINGMhI";
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+
+// ----------------------
+// ADMIN LOGIN
+// ----------------------
+async function adminLogin() {
+  const email = document.getElementById('admin-email').value;
+  const password = document.getElementById('admin-pass').value;
+
+  const { data, error } = await db.auth.signInWithPassword({ email, password });
+  if (error) return alert(error.message);
+
+  currentUser = data.user;
+  alert("Logged in as admin!");
+
+  document.getElementById('new-post-form').style.display = 'block';
+  document.getElementById('admin-login').style.display = 'none';
+}
+
+// ----------------------
+// CREATE NEW POST
+// ----------------------
+async function newPost() {
+  if (!currentUser) return alert("Admin login required!");
+
+  const title = document.getElementById('post-title').value.trim();
+  const content = document.getElementById('post-content').value.trim();
+
+  if (!title || !content) return alert("Title and content are required");
+
+  await db.from("posts").insert({ title, content });
+
+  document.getElementById('post-title').value = '';
+  document.getElementById('post-content').value = '';
+
+  loadPosts();
+}
+
+// ----------------------
+// LOAD POSTS (for admin view too)
+// ----------------------
+async function loadPosts() {
+  const { data: posts } = await db
+    .from("posts")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  const container = document.getElementById("posts");
+  container.innerHTML = '';
+
+  posts.forEach(post => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "post";
+    wrapper.id = `post-${post.id}`;
+
+    wrapper.innerHTML = `
+      <div class="post-meta">${new Date(post.created_at).toLocaleString()}</div>
+      <div class="post-title">${post.title}</div>
+      <div class="post-body">${post.content}</div>
+
+      <div class="cont
