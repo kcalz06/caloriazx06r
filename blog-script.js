@@ -63,7 +63,12 @@ async function loadPosts(limit = null) {
 
       wrapper.innerHTML = `
         <div class="post-meta">${new Date(post.created_at).toLocaleString()}</div>
-        <div class="post-title">${post.title}</div>
+
+        <!-- Make title clickable -->
+        <div class="post-title">
+          <a href="post.html?id=${post.id}">${post.title}</a>
+        </div>
+
         <div class="post-body">${post.content}</div>
 
         <div class="controls">
@@ -90,6 +95,7 @@ async function loadPosts(limit = null) {
     console.error("Error loading posts:", err);
   }
 }
+
 
 // ----------------------
 // LIKE SYSTEM
