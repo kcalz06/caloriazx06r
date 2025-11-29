@@ -1,20 +1,21 @@
-/* admin.css */
+/* admin.css - dark mode */
 
 /* Full-page background */
 body {
   margin: 0;
   padding: 0;
   font-family: 'Arial', sans-serif;
-  background: #f0f2f5;
+  background: #2D2D3B; /* dark background */
+  color: #EDEDED;
 }
 
 /* Centered login card */
 #admin-login {
   width: 360px;
   padding: 2rem;
-  background: #ffffff;
+  background: #3A3A52; /* darker card background */
   border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
   position: absolute;
   top: 50%;
   left: 50%;
@@ -22,16 +23,19 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  color: #EDEDED;
 }
 
 /* Input fields */
 #admin-login input {
   padding: 0.75rem;
   font-size: 1rem;
-  border: 1px solid #ccc;
+  border: 1px solid #555;
   border-radius: 8px;
   width: 100%;
   box-sizing: border-box;
+  background: #2D2D3B;
+  color: #EDEDED;
 }
 
 /* Login button */
@@ -40,14 +44,14 @@ body {
   font-size: 1rem;
   border: none;
   border-radius: 8px;
-  background-color: #0077ff;
+  background-color: #4C7097;
   color: #fff;
   cursor: pointer;
   transition: 0.2s;
 }
 
 #admin-login button:hover {
-  background-color: #005fcc;
+  background-color: #3a5671;
 }
 
 /* New post form */
@@ -56,12 +60,13 @@ body {
   max-width: 90%;
   margin: 2rem auto;
   padding: 1.5rem;
-  background: #fff;
+  background: #3A3A52;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   display: none; /* hidden until login */
   flex-direction: column;
   gap: 1rem;
+  color: #EDEDED;
 }
 
 /* Title input */
@@ -69,12 +74,14 @@ body {
   padding: 0.75rem;
   font-size: 1rem;
   border-radius: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #555;
   width: 100%;
   box-sizing: border-box;
+  background: #2D2D3B;
+  color: #EDEDED;
 }
 
-/* Publish button */
+/* Publish and new post buttons */
 .post-buttons {
   display: flex;
   gap: 10px;
@@ -83,7 +90,7 @@ body {
 
 #publish-btn {
   flex: 1;
-  background-color: green;
+  background-color: #4CAF50; /* green */
   color: white;
   padding: 8px 16px;
   border: none;
@@ -93,11 +100,11 @@ body {
 
 #publish-btn.published {
   background-color: #90ee90; /* lighter green */
-  pointer-events: none; /* prevent double click */
+  pointer-events: none;
 }
 
 #new-post-btn {
-  flex: 0.5; /* half width of original button */
+  flex: 0.5;
   background-color: #007bff;
   color: white;
   border: none;
@@ -108,19 +115,24 @@ body {
 /* Quill editor styles */
 #editor {
   height: 250px;
-  background: #fff;
-  border: 1px solid #ccc;
+  background: #2D2D3B;
+  border: 1px solid #555;
   border-radius: 8px;
+  color: #EDEDED;
 }
 
 /* Quill toolbar tweaks */
 .ql-toolbar.ql-snow {
   border-radius: 8px 8px 0 0;
-  border: 1px solid #ccc;
+  border: 1px solid #555;
   border-bottom: none;
+  background: #3A3A52;
+  color: #EDEDED;
 }
 
 .ql-container.ql-snow {
   border-radius: 0 0 8px 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #555;
+  background: #2D2D3B;
+  color: #EDEDED;
 }
