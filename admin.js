@@ -43,8 +43,6 @@ async function adminLogin() {
 
     document.getElementById('admin-login').style.display = 'none';
     document.getElementById('new-post-form').style.display = 'block';
-
-    loadPosts();
   } catch (err) {
     alert(err.message);
     console.error(err);
@@ -68,7 +66,6 @@ async function newPost() {
     // Reset input & Quill
     document.getElementById('post-title').value = '';
     quill.setContents([]);
-    loadPosts();
 
     // Change publish button
     const publishBtn = document.getElementById('publish-btn');
@@ -98,10 +95,8 @@ document.getElementById('new-post-btn')?.addEventListener('click', () => {
 document.getElementById('login-btn')?.addEventListener('click', adminLogin);
 document.getElementById('publish-btn')?.addEventListener('click', newPost);
 
-// Load posts on page
-document.addEventListener("DOMContentLoaded", loadPosts);
-
-// Expose functions globally (optional, if you call them elsewhere)
+// ----------------------
+// Expose functions globally (optional)
+// ----------------------
 window.adminLogin = adminLogin;
 window.newPost = newPost;
-window.loadPosts = loadPosts;
