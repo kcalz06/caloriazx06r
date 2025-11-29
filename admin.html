@@ -29,11 +29,6 @@
   <button id="publish-btn">Publish</button>
 </div>
 
-<!-- Posts -->
-<div class="container">
-  <div class="posts" id="posts"></div>
-</div>
-
 <script>
 // ----------------------
 // Supabase setup
@@ -48,19 +43,36 @@ let currentUser = null;
 // ADMIN LOGIN
 // ----------------------
 async function adminLogin() {
-  const email = document.getElementById('admin-email').value;
-  const password = document.getElementById('admin-pass').value;
+  const emailInput = document.getElementById('admin-email');
+  const passInput = document.getElementById('admin-pass');
 
-  const { data, error } = await db.auth.signInWithPassword({ email, password });
-  if (error) return alert(error.message);
+  const email = emailInput?.value.trim();
+  const password = passInput?.value;
 
-  currentUser = data.user;
-  alert("Logged in as admin!");
+  if (!email || !password) return alert("Email and password required");
 
-  document.getElementById('new-post-form').style.display = 'block';
-  document.getElementById('admin-login').style.display = 'none';
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    currentUser = data.user;
+    alert("Logged in as admin!");
+
+    // Hide login card
+    const loginContainer = document.getElementById('admin-login');
+    if (loginContainer) loginContainer.style.display = 'none';
+
+    // Show new post form
+    const newPostForm = document.getElementById('new-post-form');
+    if (newPostForm) newPostForm.style.display = 'block';
+
+    // Optional: reload posts
+    loadPosts();
+  } catch (err) {
+    alert(err.message);
+    console.error(err);
+  }
 }
-
 // ----------------------
 // CREATE NEW POST
 // ----------------------
