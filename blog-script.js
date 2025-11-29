@@ -1,23 +1,70 @@
-/* Basic JS for single-author blog: likes, comments, simple admin posting */
+/* Persistent JS for single-author blog: likes + comments saved in localStorage */
 
-// Like buttons
-function toggleLike(id) {
-  const key = `like-${id}`;
-  const liked = localStorage.getItem(key) === "true";
-  localStorage.setItem(key, !liked);
-  document.querySelector(`#like-${id}`).textContent = !liked ? "♥ Liked" : "♡ Like";
+// ----------------------
+// LIKE SYSTEM (Persistent)
+// ----------------------
+function toggleLike(postId) {
+  const key = `likes-${postId}`;
+  let count = parseInt(localStorage.getItem(key) || "0");
+  const userKey = `liked-${postId}`;
+  const liked = localStorage.getItem(userKey) === "true";
+
+  if (liked) {
+    count--;
+    localStorage.setItem(userKey, "false");
+  } else {
+    count++;
+    localStorage.setItem(userKey, "true");
+  }
+
+  localStorage.setItem(key, count);
+  renderLikes(postId);
 }
 
-// Restore like states on load
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("[data-like-id]").forEach(btn => {
-    const id = btn.getAttribute("data-like-id");
-    const liked = localStorage.getItem(`like-${id}`) === "true";
-    btn.textContent = liked ? "♥ Liked" : "♡ Like";
-  });
-});
+function renderLikes(postId) {
+  const count = localStorage.getItem(`likes-${postId}`) || 0;
+  const liked = localStorage.getItem(`liked-${postId}`) === "true";
 
-// Comments with timestamps + editing
+  const btn = document.querySelector(`#like-${postId}`);
+  const countEl = document.querySelector(`#like-count-${postId}`);
+
+  if (btn) btn.textContent = liked ? "♥ Liked" : "♡ Like";
+  if (countEl) countEl.textContent = `${count} likes`;
+}
+
+// --------------------------------
+// COMMENT SYSTEM (Persistent)
+// --------------------------------
+function loadComments(postId) {
+  return JSON.parse(localStorage.getItem(`comments-${postId}`) || "[]");
+}
+
+function saveComments(postId, arr) {
+  localStorage.setItem(`comments-${postId}`, JSON.stringify(arr));
+}
+
+function renderComments(postId) {
+  const container = document.querySelector(`#comments-${postId}`);
+  if (!container) return;
+
+  const comments = loadComments(postId);
+  container.innerHTML = "";
+
+  comments.forEach(c => {
+    const div = document.createElement("div");
+    div.className = "comment";
+    div.setAttribute("data-comment-id", c.id);
+
+    div.innerHTML = `
+      <div class="comment-text">${c.text}</div>
+      <div class="comment-meta">${c.date}</div>
+      <button onclick="editComment(${postId}, ${c.id})">Edit</button>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
 function submitComment(postId) {
   const textarea = document.querySelector(`#comment-input-${postId}`);
   const text = textarea.value.trim();
@@ -26,40 +73,41 @@ function submitComment(postId) {
   const now = new Date();
   const dateStr = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
 
-  const list = document.querySelector(`#comments-${postId}`);
-  const div = document.createElement("div");
-  div.className = "comment";
+  const newComment = {
+    id: Date.now(),
+    text,
+    date: `Posted on ${dateStr}`
+  };
 
-  const id = Date.now();
+  const comments = loadComments(postId);
+  comments.push(newComment);
+  saveComments(postId, comments);
 
-  div.setAttribute("data-comment-id", id);
-  div.innerHTML = `
-    <div class="comment-text">${text}</div>
-    <div class="comment-meta">Posted on ${dateStr}</div>
-    <button onclick="editComment(${postId}, ${id})">Edit</button>
-  `;
-
-  list.appendChild(div);
   textarea.value = "";
+  renderComments(postId);
 }
 
 function editComment(postId, commentId) {
-  const div = document.querySelector(`[data-comment-id='${commentId}']`);
-  const textEl = div.querySelector('.comment-text');
-  const metaEl = div.querySelector('.comment-meta');
+  const comments = loadComments(postId);
+  const c = comments.find(x => x.id === commentId);
+  if (!c) return;
 
-  const current = textEl.textContent;
-  const updated = prompt("Edit your comment:", current);
+  const updated = prompt("Edit your comment:", c.text);
   if (!updated) return;
 
-  textEl.textContent = updated;
+  c.text = updated;
 
   const now = new Date();
   const dateStr = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
-  metaEl.textContent = `Edited on ${dateStr}`;
+  c.date = `Edited on ${dateStr}`;
+
+  saveComments(postId, comments);
+  renderComments(postId);
 }
 
-// Simple admin posting (client-side only)
+// ----------------------
+// ADMIN NEW POST
+// ----------------------
 function newPost() {
   const pass = prompt("Enter admin password:");
   if (pass !== "letmein") return alert("Incorrect password");
@@ -69,10 +117,11 @@ function newPost() {
   if (!title || !body) return;
 
   const container = document.querySelector(".posts");
+  const id = Date.now();
 
   const wrapper = document.createElement("div");
   wrapper.className = "post";
-  const id = Date.now();
+  wrapper.id = `post-${id}`;
 
   wrapper.innerHTML = `
     <div class="post-meta">Posted by You • Just now</div>
@@ -81,6 +130,7 @@ function newPost() {
 
     <div class="controls">
       <button id="like-${id}" data-like-id="${id}" onclick="toggleLike(${id})">♡ Like</button>
+      <span id="like-count-${id}" class="like-count"></span>
       <button onclick="document.querySelector('#comment-box-${id}').style.display='block'">💬 Comment</button>
     </div>
 
@@ -88,8 +138,23 @@ function newPost() {
       <textarea id="comment-input-${id}" placeholder="Write a comment..."></textarea>
       <button onclick="submitComment(${id})">Post</button>
     </div>
+
     <div class="comments-list" id="comments-${id}"></div>
   `;
 
   container.prepend(wrapper);
+
+  renderLikes(id);
+  renderComments(id);
 }
+
+// ----------------------
+// INITIAL PAGE LOAD
+// ----------------------
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("[data-like-id]").forEach(btn => {
+    const id = btn.getAttribute("data-like-id");
+    renderLikes(id);
+    renderComments(id);
+  });
+});
