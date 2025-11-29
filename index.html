@@ -22,21 +22,29 @@
     <!-- EXAMPLE POST 1 -->
     <div class="post" id="post-1">
       <div class="post-meta">Posted by You • Today</div>
+
       <div class="post-title">Welcome to my blog</div>
       <div class="post-body">
         This is your first test post. Visitors can like or comment, but only you can publish posts.
       </div>
 
       <div class="controls">
+        <!-- like count display -->
         <button id="like-1" data-like-id="1" onclick="toggleLike(1)">♡ Like</button>
-        <button onclick="document.querySelector('#comment-box-1').style.display='block'">💬 Comment</button>
+        <span id="like-count-1" class="like-count"></span>
+
+        <button onclick="document.querySelector('#comment-box-1').style.display='block'">
+          💬 Comment
+        </button>
       </div>
 
+      <!-- comment input box -->
       <div class="comment-box" id="comment-box-1" style="display:none;">
         <textarea id="comment-input-1" placeholder="Write a comment..."></textarea>
         <button onclick="submitComment(1)">Post</button>
       </div>
 
+      <!-- list of comments -->
       <div class="comments-list" id="comments-1"></div>
     </div>
 
