@@ -75,19 +75,34 @@ body {
 }
 
 /* Publish button */
-#new-post-form button {
-  padding: 0.75rem;
-  font-size: 1rem;
-  border-radius: 8px;
-  border: none;
-  background-color: #28a745;
-  color: #fff;
-  cursor: pointer;
-  transition: 0.2s;
+.post-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-#new-post-form button:hover {
-  background-color: #218838;
+#publish-btn {
+  flex: 1;
+  background-color: green;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#publish-btn.published {
+  background-color: #90ee90; /* lighter green */
+  pointer-events: none; /* prevent double click */
+}
+
+#new-post-btn {
+  flex: 0.5; /* half width of original button */
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  padding: 8px 16px;
 }
 
 /* Quill editor styles */
