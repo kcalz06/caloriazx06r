@@ -1,0 +1,88 @@
+/* admin.css */
+
+/* Full-page background */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  background: #f0f2f5;
+}
+
+/* Centered login card */
+#admin-login {
+  width: 360px;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Input fields */
+#admin-login input {
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Login button */
+#admin-login button {
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  background-color: #0077ff;
+  color: #fff;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#admin-login button:hover {
+  background-color: #005fcc;
+}
+
+/* New post form */
+#new-post-form {
+  width: 600px;
+  max-width: 90%;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  display: none; /* hidden until login */
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#new-post-form input,
+#new-post-form textarea,
+#new-post-form button {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+#new-post-form button {
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+#new-post-form button:hover {
+  background-color: #218838;
+}
