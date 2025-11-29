@@ -109,9 +109,29 @@ async function loadLikes(postId) {
   }
 }
 
-// ----------------------
-// Load comments for a post
-// ----------------------
+// Add a comment
+async function addComment(postId) {
+  const name = document.getElementById(`cname-${postId}`).value || "Anonymous";
+  const comment = document.getElementById(`ctext-${postId}`).value.trim();
+  if (!comment) return alert("Comment cannot be empty");
+
+  const { error } = await db
+    .from("comments")
+    .insert({ post_id: postId, name, comment });
+
+  if (error) {
+    console.error(error);
+    alert("Failed to post comment");
+    return;
+  }
+
+  document.getElementById(`cname-${postId}`).value = "";
+  document.getElementById(`ctext-${postId}`).value = "";
+
+  loadComments(postId);
+}
+
+// Load comments
 async function loadComments(postId) {
   try {
     const { data } = await db
@@ -122,12 +142,15 @@ async function loadComments(postId) {
 
     const container = document.getElementById(`comments-${postId}`);
     if (container) {
-      container.innerHTML = data.map(c => `<p><strong>${c.name}</strong>: ${c.comment}</p>`).join('');
+      container.innerHTML = data
+        .map(c => `<p><strong>${c.name}</strong>: ${c.comment}</p>`)
+        .join("");
     }
   } catch (err) {
     console.error(err);
   }
 }
+
 
 // ----------------------
 // INITIAL PAGE LOAD
