@@ -48,7 +48,7 @@ header a {
 
 .post {
   break-inside: avoid;
-  background: #fff;
+  background: #1E1E1E;
   padding: 15px;
   margin-bottom: 20px;
   border-radius: 10px;
@@ -84,7 +84,7 @@ header a {
   border: none;
   background: none;
   cursor: pointer;
-  color: #007aff;
+  color: #4C7097;
   padding: 0;
 }
 
@@ -106,7 +106,7 @@ header a {
 
 .comment-box button {
   margin-top: 6px;
-  background: #007aff;
+  background: #4C7097;
   border: none;
   padding: 8px 12px;
   border-radius: 6px;
@@ -121,7 +121,7 @@ header a {
 }
 
 .comments-list .comment {
-  background: #f1f1f1;
+  background: #C1C5E2;
   padding: 8px;
   border-radius: 6px;
   margin-bottom: 6px;
