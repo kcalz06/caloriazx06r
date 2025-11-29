@@ -33,22 +33,24 @@
   <!-- Quill Editor -->
   <div id="editor" style="height: 250px; background: #fff;"></div>
 
-  <button id="publish-btn">Publish</button>
+  <!-- Buttons -->
+  <div class="post-buttons">
+    <button id="publish-btn">Publish</button>
+    <button id="new-post-btn">New Post?</button>
+  </div>
 </div>
 
+<!-- Posts container -->
+<div id="posts" style="margin-top: 2rem;"></div>
+
 <script>
-// ----------------------
-// Supabase setup
-// ----------------------
 const SUPABASE_URL = "https://jlipdvlisaljkraswxku.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsaXBkdmxpc2FsamtyYXN3eGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQzNzMzNjAsImV4cCI6MjA3OTk0OTM2MH0.KK6bv8aqGJPkURYY6SOB29cclLn9aJiORdArwINGMhI"; 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let currentUser = null;
 
-// ----------------------
 // Initialize Quill
-// ----------------------
 const quill = new Quill('#editor', {
   theme: 'snow',
   placeholder: 'Write your post here...',
@@ -64,9 +66,7 @@ const quill = new Quill('#editor', {
   }
 });
 
-// ----------------------
 // ADMIN LOGIN
-// ----------------------
 async function adminLogin() {
   const email = document.getElementById('admin-email')?.value.trim();
   const password = document.getElementById('admin-pass')?.value;
@@ -90,9 +90,7 @@ async function adminLogin() {
   }
 }
 
-// ----------------------
 // CREATE NEW POST
-// ----------------------
 async function newPost() {
   if (!currentUser) return alert("Admin login required!");
 
@@ -103,18 +101,23 @@ async function newPost() {
 
   try {
     await db.from("posts").insert({ title, content });
+
+    // Reset input & Quill
     document.getElementById('post-title').value = '';
     quill.setContents([]);
     loadPosts();
+
+    // Update publish button
+    const publishBtn = document.getElementById('publish-btn');
+    publishBtn.textContent = 'Published!';
+    publishBtn.classList.add('published');
   } catch (err) {
     console.error(err);
     alert("Failed to publish post");
   }
 }
 
-// ----------------------
 // LOAD POSTS
-// ----------------------
 async function loadPosts() {
   try {
     const { data: posts } = await db
@@ -142,21 +145,27 @@ async function loadPosts() {
   }
 }
 
-// ----------------------
-// GLOBAL FUNCTIONS
-// ----------------------
-window.adminLogin = adminLogin;
-window.newPost = newPost;
-window.loadPosts = loadPosts;
+// NEW POST BUTTON
+document.getElementById('new-post-btn').addEventListener('click', () => {
+  document.getElementById('post-title').value = '';
+  quill.setContents([]);
 
-// ----------------------
+  const publishBtn = document.getElementById('publish-btn');
+  publishBtn.textContent = 'Publish';
+  publishBtn.classList.remove('published');
+});
+
 // BUTTON EVENTS
-// ----------------------
 document.getElementById('login-btn').addEventListener('click', adminLogin);
 document.getElementById('publish-btn').addEventListener('click', newPost);
 
-// Load posts on page (optional)
+// Load posts on page
 document.addEventListener("DOMContentLoaded", loadPosts);
+
+// Expose functions globally (optional)
+window.adminLogin = adminLogin;
+window.newPost = newPost;
+window.loadPosts = loadPosts;
 </script>
 </body>
 </html>
