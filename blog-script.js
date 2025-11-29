@@ -2,7 +2,7 @@
 // Supabase setup
 // ----------------------
 const SUPABASE_URL = "https://jlipdvlisaljkraswxku.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsaXBkdmxpc2FsamtyYXN3eGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQzNzMzNjAsImV4cCI6MjA3OTk0OTM2MH0.KK6bv8aqGJPkURYY6SOB29cclLn9aJiORdArwINGMhI"; 
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsaXBkdmxpc2FsamtyYXN3eGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQzNzMzNjAsImV4cCI6MjA3OTk0OTM2MH0.KK6bv8aqGJPkURYY6SOB29cclLn9aJiORdArwINGMhI";
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ----------------------
@@ -16,7 +16,6 @@ async function loadPosts() {
       .order("created_at", { ascending: false });
 
     const container = document.getElementById("posts");
-    if (!container) return;
     container.innerHTML = '';
 
     posts.forEach(post => {
@@ -30,16 +29,19 @@ async function loadPosts() {
           <a href="post.html?id=${post.id}">${post.title}</a>
         </div>
         <div class="post-body">${post.content}</div>
+
         <div class="controls">
           <button id="like-${post.id}">♡ Like</button>
           <span id="like-count-${post.id}" class="like-count"></span>
           <button id="comment-btn-${post.id}">💬 Comment</button>
         </div>
+
         <div class="comment-box" id="comment-box-${post.id}" style="display:none;">
           <input id="cname-${post.id}" placeholder="Name (optional)">
           <textarea id="ctext-${post.id}" placeholder="Write a comment..."></textarea>
           <button id="post-comment-${post.id}">Post</button>
         </div>
+
         <div class="comments-list" id="comments-${post.id}"></div>
       `;
 
@@ -128,6 +130,6 @@ async function loadComments(postId) {
 }
 
 // ----------------------
-// Initialize
+// INITIAL PAGE LOAD
 // ----------------------
 document.addEventListener("DOMContentLoaded", loadPosts);
