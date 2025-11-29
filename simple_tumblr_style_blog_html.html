@@ -1,330 +1,50 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bluebird — Personal Blog</title>
-  <meta name="description" content="A minimal, single-author Tumblr-style blog" />
-  <style>
-    :root{ --bg:#f6f7f9; --card:#fff; --muted:#6b7280; --accent:#0ea5a4; --maxwidth:980px }
-    *{box-sizing:border-box}
-    body{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial; margin:0; background:var(--bg); color:#111}
-    header{background:linear-gradient(180deg, rgba(255,255,255,0.6), transparent);backdrop-filter: blur(4px); position:sticky; top:0; z-index:10; border-bottom:1px solid rgba(0,0,0,0.04)}
-    .wrap{max-width:var(--maxwidth); margin:0 auto; padding:1rem}
-    .brand{display:flex; align-items:center; gap:.75rem}
-    .logo{width:42px; height:42px; border-radius:8px; background:var(--accent); display:flex; align-items:center; justify-content:center; color:white; font-weight:700}
-    h1{font-size:1.125rem; margin:0}
-    nav{margin-left:auto}
-    nav a{color:var(--muted); text-decoration:none; margin-left:1rem; font-size:.95rem}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Blog</title>
 
-    main.wrap{padding-top:1rem}
-    .stream{column-gap:1rem; column-fill:balance}
-    @media(min-width:1000px){ .stream{column-count:3} }
-    @media(max-width:999px){ .stream{column-count:2} }
-    @media(max-width:700px){ .stream{column-count:1} }
-
-    .post{display:inline-block; width:100%; margin:0 0 1rem; background:var(--card); border-radius:12px; overflow:hidden; box-shadow:0 6px 18px rgba(16,24,40,0.04); break-inside:avoid}
-    .post img{display:block; width:100%; height:auto}
-    .pad{padding:0.9rem}
-    .meta{display:flex; gap:.5rem; align-items:center; color:var(--muted); font-size:.9rem}
-    .avatar{width:36px; height:36px; border-radius:50%; background:#ddd; display:inline-flex; align-items:center; justify-content:center; font-weight:600}
-    .title{font-size:1.05rem; margin:.45rem 0; line-height:1.25}
-    .excerpt{color:var(--muted); font-size:.95rem}
-    .tags{margin-top:.6rem; display:flex; gap:.4rem; flex-wrap:wrap}
-    .tag{font-size:.8rem; padding:.25rem .5rem; background:#f2f7f6; border-radius:999px; color:#0b6662}
-
-    .controls{display:flex; align-items:center; justify-content:space-between; padding:.6rem .9rem; border-top:1px solid rgba(0,0,0,0.04); background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent)}
-    .btn{padding:.45rem .7rem; border-radius:8px; border:none; background:var(--accent); color:white; cursor:pointer; font-weight:600; font-size:.9rem}
-    .muted{color:var(--muted)}
-
-    .actions{display:flex; gap:.6rem; align-items:center}
-    .like-btn{background:transparent;border:1px solid rgba(0,0,0,0.06);padding:.35rem .6rem;border-radius:8px;cursor:pointer}
-    .comment-list{margin-top:.75rem; padding-top:.5rem; border-top:1px dashed rgba(0,0,0,0.04)}
-    .comment{margin:0.45rem 0; font-size:.95rem}
-    .comment small{color:var(--muted)}
-
-    footer{padding:2rem 0; color:var(--muted); font-size:.95rem}
-
-    /* admin new-post modal (simple) */
-    .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(2,6,23,0.4); z-index:50}
-    .modal .card{background:white; width:720px; max-width:94%; border-radius:12px; padding:1rem}
-    .field{display:flex; flex-direction:column; gap:.4rem; margin-bottom:.6rem}
-    input[type=text], textarea{padding:.6rem;border:1px solid #e6e9ef;border-radius:8px;font-size:1rem}
-    textarea{min-height:120px}
-
-    /* small helpers */
-    .hidden{display:none}
-  </style>
+  <!-- Link external CSS -->
+  <link rel="stylesheet" href="blog-style.css">
 </head>
+
 <body>
-  <header>
-    <div class="wrap" style="display:flex; align-items:center">
-      <div class="brand">
-        <div class="logo">B</div>
-        <div>
-          <h1>Bluebird — Sky M.</h1>
-          <div style="font-size:.85rem;color:var(--muted)">A personal, single-author stream</div>
-        </div>
+
+<header>
+  <h1>Your Blog</h1>
+  <a href="#" onclick="newPost()">New Post</a>
+</header>
+
+<div class="container">
+  <div class="posts">
+
+    <!-- EXAMPLE POST 1 -->
+    <div class="post" id="post-1">
+      <div class="post-meta">Posted by You • Today</div>
+      <div class="post-title">Welcome to my blog</div>
+      <div class="post-body">
+        This is your first test post. Visitors can like or comment, but only you can publish posts.
       </div>
-      <nav>
-        <a href="#">Home</a>
-        <a href="#">About</a>
-        <a href="#">Contact</a>
-      </nav>
+
+      <div class="controls">
+        <button id="like-1" data-like-id="1" onclick="toggleLike(1)">♡ Like</button>
+        <button onclick="document.querySelector('#comment-box-1').style.display='block'">💬 Comment</button>
+      </div>
+
+      <div class="comment-box" id="comment-box-1" style="display:none;">
+        <textarea id="comment-input-1" placeholder="Write a comment..."></textarea>
+        <button onclick="submitComment(1)">Post</button>
+      </div>
+
+      <div class="comments-list" id="comments-1"></div>
     </div>
-  </header>
 
-  <main class="wrap">
-    <section class="stream" id="stream" aria-live="polite">
-
-      <!-- sample posts (only the blog owner can add posts) -->
-      <article class="post" data-id="post-1">
-        <img src="https://via.placeholder.com/800x500.png?text=Late+November+Light" alt="photo" />
-        <div class="pad">
-          <div class="meta">
-            <div class="avatar">SM</div>
-            <div>
-              <div style="font-weight:600">Sky M.</div>
-              <div class="muted">Nov 28, 2025 · 3 min read</div>
-            </div>
-          </div>
-
-          <h2 class="title">Late November Light</h2>
-          <p class="excerpt">Short caption about this photo — light, shadow, and a quiet street.</p>
-          <div class="tags"><span class="tag">photography</span><span class="tag">street</span></div>
-
-          <div class="comment-list" id="comments-post-1">
-            <div class="comment"><strong>Alex</strong> <small>· Nov 28</small><div>A lovely shot.</div></div>
-          </div>
-        </div>
-        <div class="controls">
-          <div class="actions">
-            <button class="like-btn" data-post="post-1">❤ <span class="like-count">42</span></button>
-            <button class="btn" onclick="document.getElementById('comment-box-post-1').scrollIntoView({behavior:'smooth'})">Comment</button>
-          </div>
-          <div class="muted">3 comments</div>
-        </div>
-
-        <div style="padding:.9rem; border-top:1px solid rgba(0,0,0,0.03)">
-          <div id="comment-box-post-1">
-            <form onsubmit="addComment(event,'post-1')">
-              <div style="display:flex; gap:.5rem; align-items:flex-start">
-                <input type="text" name="name" placeholder="Your name" required style="flex:0 0 140px; padding:.5rem; border-radius:8px; border:1px solid #e6e9ef" />
-                <textarea name="text" placeholder="Write a comment" required></textarea>
-              </div>
-              <div style="margin-top:.5rem; display:flex; gap:.5rem; justify-content:flex-end">
-                <small class="muted">Comments are public</small>
-                <button class="btn" type="submit">Post comment</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </article>
-
-      <article class="post" data-id="post-2">
-        <div class="pad">
-          <div class="meta">
-            <div class="avatar">SM</div>
-            <div>
-              <div style="font-weight:600">Sky M.</div>
-              <div class="muted">Nov 26, 2025 · 6 min read</div>
-            </div>
-          </div>
-          <h2 class="title">Why I keep a small notebook</h2>
-          <p class="excerpt">Thoughts on how a tiny notebook reshapes attention when everything else is noisy.</p>
-          <div class="tags"><span class="tag">essays</span><span class="tag">notes</span></div>
-
-          <div class="comment-list" id="comments-post-2"></div>
-        </div>
-        <div class="controls">
-          <div class="actions">
-            <button class="like-btn" data-post="post-2">❤ <span class="like-count">181</span></button>
-            <button class="btn" onclick="document.getElementById('comment-box-post-2').scrollIntoView({behavior:'smooth'})">Comment</button>
-          </div>
-          <div class="muted">0 comments</div>
-        </div>
-
-        <div style="padding:.9rem; border-top:1px solid rgba(0,0,0,0.03)">
-          <div id="comment-box-post-2">
-            <form onsubmit="addComment(event,'post-2')">
-              <div style="display:flex; gap:.5rem; align-items:flex-start">
-                <input type="text" name="name" placeholder="Your name" required style="flex:0 0 140px; padding:.5rem; border-radius:8px; border:1px solid #e6e9ef" />
-                <textarea name="text" placeholder="Write a comment" required></textarea>
-              </div>
-              <div style="margin-top:.5rem; display:flex; gap:.5rem; justify-content:flex-end">
-                <small class="muted">Comments are public</small>
-                <button class="btn" type="submit">Post comment</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      </article>
-
-    </section>
-
-    <footer>
-      <div style="display:flex; align-items:center; justify-content:space-between">
-        <div class="muted">© 2025 Sky M.</div>
-        <div class="muted">Only the author can publish new posts. Visitors may like and comment.</div>
-      </div>
-    </footer>
-  </main>
-
-  <!-- admin modal (author-only): simple local check; change password in script -->
-  <div class="modal" id="adminModal">
-    <div class="card">
-      <h3>New post</h3>
-      <div class="field">
-        <label>Title</label>
-        <input id="new-title" type="text" />
-      </div>
-      <div class="field">
-        <label>Excerpt / caption</label>
-        <textarea id="new-excerpt"></textarea>
-      </div>
-      <div class="field">
-        <label>Image URL (optional)</label>
-        <input id="new-image" type="text" />
-      </div>
-      <div style="display:flex; gap:.5rem; justify-content:flex-end">
-        <button class="btn" onclick="publishPost()">Publish</button>
-        <button class="btn" style="background:#e6e9ef;color:#0b6662" onclick="closeModal()">Cancel</button>
-      </div>
-    </div>
   </div>
-
-  <script>
-    // Lightweight client-side interactions: likes, comments, simple admin publish (local only)
-    document.querySelectorAll('.like-btn').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const countSpan = btn.querySelector('.like-count');
-        let n = parseInt(countSpan.textContent,10)||0;
-        n += 1;
-        countSpan.textContent = n;
-        // store in localStorage so likes persist per-browser
-        const postId = btn.dataset.post;
-        localStorage.setItem('likes-'+postId, n);
-      });
-      // restore
-      const postId = btn.dataset.post;
-      const stored = localStorage.getItem('likes-'+postId);
-      if(stored) btn.querySelector('.like-count').textContent = stored;
-    });
-
-    function addComment(e, postId){
-      e.preventDefault();
-      const form = e.target;
-      const name = form.name.value.trim();
-      const text = form.text.value.trim();
-      if(!name || !text) return;
-      const list = document.getElementById('comments-'+postId) || document.getElementById('comments-'+postId);
-      const container = document.getElementById('comments-'+postId) || document.getElementById('comments-'+postId) || document.getElementById('comments-'+postId);
-      // fallback: find the comment-list inside the post
-      const postEl = document.querySelector('[data-id="'+postId+'"]');
-      const commentList = postEl.querySelector('.comment-list');
-      const div = document.createElement('div');
-      div.className = 'comment';
-      div.innerHTML = '<strong>'+escapeHtml(name)+'</strong> <small>· just now</small><div>'+escapeHtml(text)+'</div>';
-      commentList.appendChild(div);
-      form.name.value=''; form.text.value='';
-    }
-
-    function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-    // Simple admin gating: not secure. Prompts for password; if correct opens modal to publish.
-    // Change ADMIN_PASSWORD below before deploying if you want a custom passphrase.
-    const ADMIN_PASSWORD = 'letmein';
-    function promptAdmin(){
-      const p = prompt('Enter admin passphrase to publish a new post (local only):');
-      if(p === ADMIN_PASSWORD){
-        openModal();
-      } else if(p !== null){
-        alert('Wrong passphrase.');
-      }
-    }
-
-    function openModal(){ document.getElementById('adminModal').style.display='flex'; }
-    function closeModal(){ document.getElementById('adminModal').style.display='none'; }
-
-    function publishPost(){
-      const title = document.getElementById('new-title').value.trim();
-      const excerpt = document.getElementById('new-excerpt').value.trim();
-      const image = document.getElementById('new-image').value.trim();
-      if(!title) return alert('Title required');
-      // build post element
-      const id = 'post-' + Date.now();
-      const article = document.createElement('article');
-      article.className='post'; article.setAttribute('data-id', id);
-      let html = '';
-      if(image){ html += '<img src="'+escapeHtml(image)+'" alt="image" />'; }
-      html += '<div class="pad">
-';
-      html += '<div class="meta">
-<div class="avatar">SM</div>
-<div>
-<div style="font-weight:600">Sky M.</div>
-<div class="muted">just published · 1 min read</div>
 </div>
-</div>
-';
-      html += '<h2 class="title">'+escapeHtml(title)+'</h2>';
-      if(excerpt) html += '<p class="excerpt">'+escapeHtml(excerpt)+'</p>';
-      html += '<div class="comment-list"></div></div>
-';
-      html += '<div class="controls">
-<div class="actions">
-<button class="like-btn" data-post="'+id+'">❤ <span class="like-count">0</span></button>
-<button class="btn" onclick="document.getElementById(\'comment-box-'+id+'\').scrollIntoView({behavior:\'smooth\'})">Comment</button>
-</div>
-<div class="muted">0 comments</div>
-</div>
-';
-      html += '<div style="padding:.9rem; border-top:1px solid rgba(0,0,0,0.03)">
-<div id="comment-box-'+id+'">
-<form onsubmit="addComment(event,\''+id+'\')">
-<div style="display:flex; gap:.5rem; align-items:flex-start">
-<input type=\"text\" name=\"name\" placeholder=\"Your name\" required style=\"flex:0 0 140px; padding:.5rem; border-radius:8px; border:1px solid #e6e9ef\" />
-<textarea name=\"text\" placeholder=\"Write a comment\" required></textarea>
-</div>
-<div style=\"margin-top:.5rem; display:flex; gap:.5rem; justify-content:flex-end\">
-<small class=\"muted\">Comments are public</small>
-<button class=\"btn\" type=\"submit\">Post comment</button>
-</div>
-</form>
-</div>
-</div>';
-      article.innerHTML = html;
-      const stream = document.getElementById('stream');
-      stream.insertBefore(article, stream.firstChild);
-      closeModal();
-      // attach like handler to new button
-      const btn = article.querySelector('.like-btn');
-      btn.addEventListener('click', ()=>{
-        const span = btn.querySelector('.like-count');
-        let n = parseInt(span.textContent,10)||0; n+=1; span.textContent = n; localStorage.setItem('likes-'+id,n);
-      });
-    }
 
-    // Attach an admin button in the header dynamically
-    (function addAdminToggle(){
-      const nav = document.querySelector('header .wrap nav');
-      const adminBtn = document.createElement('button');
-      adminBtn.textContent = 'New post';
-      adminBtn.className = 'btn';
-      adminBtn.style.marginLeft='1rem';
-      adminBtn.onclick = promptAdmin;
-      nav.appendChild(adminBtn);
-    })();
+<!-- Load external JS -->
+<script src="blog-script.js"></script>
 
-    // restore likes from localStorage for dynamically created ones
-    window.addEventListener('load', ()=>{
-      document.querySelectorAll('.like-btn').forEach(btn=>{
-        const id = btn.dataset.post || btn.closest('[data-id]')?.getAttribute('data-id');
-        if(!id) return;
-        const stored = localStorage.getItem('likes-'+id);
-        if(stored) btn.querySelector('.like-count').textContent = stored;
-      });
-    });
-  </script>
 </body>
 </html>
