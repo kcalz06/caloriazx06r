@@ -1,0 +1,137 @@
+// ----------------------
+// Supabase setup
+// ----------------------
+const SUPABASE_URL = "https://jlipdvlisaljkraswxku.supabase.co";
+const SUPABASE_ANON_KEY = "public key (can i share?)"; 
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+
+// ----------------------
+// Initialize Quill
+// ----------------------
+const quill = new Quill('#editor', {
+  theme: 'snow',
+  placeholder: 'Write your post here...',
+  modules: {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      ['link', 'image'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      [{ align: [] }],
+      ['clean']
+    ]
+  }
+});
+
+// ----------------------
+// ADMIN LOGIN
+// ----------------------
+async function adminLogin() {
+  const email = document.getElementById('admin-email')?.value.trim();
+  const password = document.getElementById('admin-pass')?.value;
+
+  if (!email || !password) return alert("Email and password required");
+
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    currentUser = data.user;
+    alert("Logged in as admin!");
+
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('new-post-form').style.display = 'block';
+
+    loadPosts();
+  } catch (err) {
+    alert(err.message);
+    console.error(err);
+  }
+}
+
+// ----------------------
+// CREATE NEW POST
+// ----------------------
+async function newPost() {
+  if (!currentUser) return alert("Admin login required!");
+
+  const title = document.getElementById('post-title').value.trim();
+  const content = quill.root.innerHTML.trim();
+
+  if (!title || !content) return alert("Title and content are required");
+
+  try {
+    await db.from("posts").insert({ title, content });
+
+    // Reset input & Quill
+    document.getElementById('post-title').value = '';
+    quill.setContents([]);
+    loadPosts();
+
+    // Change publish button
+    const publishBtn = document.getElementById('publish-btn');
+    publishBtn.textContent = 'Published!';
+    publishBtn.classList.add('published');
+  } catch (err) {
+    console.error(err);
+    alert("Failed to publish post");
+  }
+}
+
+// ----------------------
+// LOAD POSTS
+// ----------------------
+async function loadPosts() {
+  try {
+    const { data: posts } = await db
+      .from("posts")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    const container = document.getElementById("posts");
+    if (!container) return;
+    container.innerHTML = '';
+
+    posts.forEach(post => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "post";
+      wrapper.id = `post-${post.id}`;
+      wrapper.innerHTML = `
+        <div class="post-meta">${new Date(post.created_at).toLocaleString()}</div>
+        <div class="post-title">${post.title}</div>
+        <div class="post-body">${post.content}</div>
+      `;
+      container.appendChild(wrapper);
+    });
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+// ----------------------
+// NEW POST BUTTON
+// ----------------------
+document.getElementById('new-post-btn')?.addEventListener('click', () => {
+  document.getElementById('post-title').value = '';
+  quill.setContents([]);
+
+  const publishBtn = document.getElementById('publish-btn');
+  publishBtn.textContent = 'Publish';
+  publishBtn.classList.remove('published');
+});
+
+// ----------------------
+// BUTTON EVENTS
+// ----------------------
+document.getElementById('login-btn')?.addEventListener('click', adminLogin);
+document.getElementById('publish-btn')?.addEventListener('click', newPost);
+
+// Load posts on page
+document.addEventListener("DOMContentLoaded", loadPosts);
+
+// Expose functions globally (optional, if you call them elsewhere)
+window.adminLogin = adminLogin;
+window.newPost = newPost;
+window.loadPosts = loadPosts;
