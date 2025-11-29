@@ -8,10 +8,11 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let currentUser = null;
 
 // ----------------------
-// UTILITY FUNCTIONS
+// UTILITY
 // ----------------------
 function toggleCommentBox(postId) {
   const box = document.getElementById(`comment-box-${postId}`);
+  if (!box) return;
   box.style.display = box.style.display === "none" ? "block" : "none";
 }
 
@@ -19,45 +20,51 @@ function toggleCommentBox(postId) {
 // LOAD POSTS
 // ----------------------
 async function loadPosts() {
-  const { data: posts } = await db
-    .from("posts")
-    .select("*")
-    .order("created_at", { ascending: false });
+  try {
+    const { data: posts, error } = await db
+      .from("posts")
+      .select("*")
+      .order("created_at", { ascending: false });
 
-  const container = document.getElementById("posts");
-  if (!container) return; // if no posts container, exit
-  container.innerHTML = '';
+    if (error) throw error;
 
-  posts.forEach(post => {
-    const wrapper = document.createElement("div");
-    wrapper.className = "post";
-    wrapper.id = `post-${post.id}`;
+    const container = document.getElementById("posts");
+    if (!container) return; // some pages may not have posts container
+    container.innerHTML = '';
 
-    wrapper.innerHTML = `
-      <div class="post-meta">${new Date(post.created_at).toLocaleString()}</div>
-      <div class="post-title">${post.title}</div>
-      <div class="post-body">${post.content}</div>
+    posts.forEach(post => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "post";
+      wrapper.id = `post-${post.id}`;
 
-      <div class="controls">
-        <button id="like-${post.id}" onclick="likePost('${post.id}')">♡ Like</button>
-        <span id="like-count-${post.id}" class="like-count"></span>
-        <button onclick="toggleCommentBox('${post.id}')">💬 Comment</button>
-      </div>
+      wrapper.innerHTML = `
+        <div class="post-meta">${new Date(post.created_at).toLocaleString()}</div>
+        <div class="post-title">${post.title}</div>
+        <div class="post-body">${post.content}</div>
 
-      <div class="comment-box" id="comment-box-${post.id}" style="display:none;">
-        <input id="cname-${post.id}" placeholder="Name (optional)">
-        <textarea id="ctext-${post.id}" placeholder="Write a comment..."></textarea>
-        <button onclick="addComment('${post.id}')">Post</button>
-      </div>
+        <div class="controls">
+          <button id="like-${post.id}" onclick="likePost('${post.id}')">♡ Like</button>
+          <span id="like-count-${post.id}" class="like-count"></span>
+          <button onclick="toggleCommentBox('${post.id}')">💬 Comment</button>
+        </div>
 
-      <div class="comments-list" id="comments-${post.id}"></div>
-    `;
+        <div class="comment-box" id="comment-box-${post.id}" style="display:none;">
+          <input id="cname-${post.id}" placeholder="Name (optional)">
+          <textarea id="ctext-${post.id}" placeholder="Write a comment..."></textarea>
+          <button onclick="addComment('${post.id}')">Post</button>
+        </div>
 
-    container.appendChild(wrapper);
+        <div class="comments-list" id="comments-${post.id}"></div>
+      `;
 
-    loadLikes(post.id);
-    loadComments(post.id);
-  });
+      container.appendChild(wrapper);
+
+      loadLikes(post.id);
+      loadComments(post.id);
+    });
+  } catch (err) {
+    console.error("Error loading posts:", err);
+  }
 }
 
 // ----------------------
@@ -77,61 +84,80 @@ async function likePost(postId) {
 }
 
 async function loadLikes(postId) {
-  const { count } = await db
-    .from("likes")
-    .select("*", { count: "exact", head: true })
-    .eq("post_id", postId);
+  try {
+    const { count, error } = await db
+      .from("likes")
+      .select("*", { count: "exact", head: true })
+      .eq("post_id", postId);
 
-  const countEl = document.getElementById(`like-count-${postId}`);
-  if (countEl) countEl.textContent = `${count} likes`;
+    if (error) throw error;
+
+    const countEl = document.getElementById(`like-count-${postId}`);
+    if (countEl) countEl.textContent = `${count || 0} likes`;
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 // ----------------------
 // COMMENT SYSTEM
 // ----------------------
 async function addComment(postId) {
-  const name = document.getElementById(`cname-${postId}`).value || "Anonymous";
-  const comment = document.getElementById(`ctext-${postId}`).value.trim();
-  if (!comment) return alert("Comment cannot be empty");
+  try {
+    const name = document.getElementById(`cname-${postId}`)?.value || "Anonymous";
+    const comment = document.getElementById(`ctext-${postId}`)?.value.trim();
+    if (!comment) return alert("Comment cannot be empty");
 
-  await db.from("comments").insert({ post_id: postId, name, comment });
+    await db.from("comments").insert({ post_id: postId, name, comment });
 
-  document.getElementById(`cname-${postId}`).value = '';
-  document.getElementById(`ctext-${postId}`).value = '';
+    document.getElementById(`cname-${postId}`).value = '';
+    document.getElementById(`ctext-${postId}`).value = '';
 
-  loadComments(postId);
+    loadComments(postId);
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 async function loadComments(postId) {
-  const { data } = await db
-    .from("comments")
-    .select("*")
-    .eq("post_id", postId)
-    .order("created_at", { ascending: true });
+  try {
+    const { data, error } = await db
+      .from("comments")
+      .select("*")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: true });
 
-  const container = document.getElementById(`comments-${postId}`);
-  container.innerHTML = data.map(c => `<p><strong>${c.name}</strong>: ${c.comment}</p>`).join('');
+    if (error) throw error;
+
+    const container = document.getElementById(`comments-${postId}`);
+    container.innerHTML = (data || []).map(c => `<p><strong>${c.name}</strong>: ${c.comment}</p>`).join('');
+  } catch (err) {
+    console.error(err);
+  }
 }
 
 // ----------------------
 // ADMIN LOGIN
 // ----------------------
 async function adminLogin() {
-  const email = document.getElementById('admin-email').value;
-  const password = document.getElementById('admin-pass').value;
+  const email = document.getElementById('admin-email')?.value;
+  const password = document.getElementById('admin-pass')?.value;
 
-  const { data, error } = await db.auth.signInWithPassword({ email, password });
-  if (error) return alert(error.message);
+  if (!email || !password) return alert("Email and password required");
 
-  currentUser = data.user;
-  alert("Logged in as admin!");
+  try {
+    const { data, error } = await db.auth.signInWithPassword({ email, password });
+    if (error) throw error;
 
-  // show new post form after login
-  const newPostForm = document.getElementById('new-post-form');
-  if (newPostForm) newPostForm.style.display = 'block';
+    currentUser = data.user;
+    alert("Logged in as admin!");
 
-  const loginForm = document.getElementById('admin-login');
-  if (loginForm) loginForm.style.display = 'none';
+    document.getElementById('new-post-form')?.style.display = 'block';
+    document.getElementById('admin-login')?.style.display = 'none';
+  } catch (err) {
+    alert(err.message);
+    console.error(err);
+  }
 }
 
 // ----------------------
@@ -140,18 +166,30 @@ async function adminLogin() {
 async function newPost() {
   if (!currentUser) return alert("Admin login required!");
 
-  const title = document.getElementById('post-title').value.trim();
-  const content = document.getElementById('post-content').value.trim();
+  const title = document.getElementById('post-title')?.value.trim();
+  const content = document.getElementById('post-content')?.value.trim();
 
   if (!title || !content) return alert("Title and content are required");
 
-  await db.from("posts").insert({ title, content });
-
-  document.getElementById('post-title').value = '';
-  document.getElementById('post-content').value = '';
-
-  loadPosts();
+  try {
+    await db.from("posts").insert({ title, content });
+    document.getElementById('post-title').value = '';
+    document.getElementById('post-content').value = '';
+    loadPosts();
+  } catch (err) {
+    console.error(err);
+  }
 }
+
+// ----------------------
+// GLOBAL FUNCTIONS
+// ----------------------
+window.adminLogin = adminLogin;
+window.newPost = newPost;
+window.loadPosts = loadPosts;
+window.likePost = likePost;
+window.addComment = addComment;
+window.toggleCommentBox = toggleCommentBox;
 
 // ----------------------
 // INITIAL PAGE LOAD
