@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Archive - My Vlog</title>
+  <link rel="stylesheet" href="blogstyle.css">
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<header>
+  <h1>My Vlog Archive</h1>
+  <a href="index.html">Home</a>
+  <a href="admin.html">Admin Login</a>
+</header>
+
+<div class="container">
+  <div class="posts" id="posts"></div>
+</div>
+
+<script>
+// ----------------------
+// Supabase setup
+// ----------------------
+const SUPABASE_URL = "https://jlipdvlisaljkraswxku.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsaXBkdmxpc2FsamtyYXN3eGt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQzNzMzNjAsImV4cCI6MjA3OTk0OTM2MH0.KK6bv8aqGJPkURYY6SOB29cclLn9aJiORdArwINGMhI";
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ----------------------
+// LOAD ALL POSTS (archive)
+// ----------------------
+async function loadPosts() {
+  const { data: posts } = await db
+    .from("posts")
+    .select("*")
+    .order("created_at", { ascending: false }); // newest first
+
+  const container = document.getElementById("posts");
+  container.innerHTML = '';
+
+  posts.forEach(post => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "post";
+    wrapper.id = `post-${post.id}`;
+
+    wrapper.innerHTML = `
+      <div class="post-meta">${new Date(post.created_at).toLocaleString()}</div>
+      <div class="post-title">${post.title}</div>
+      <div class="post-body">${post.content}</div>
+
+      <div class="controls">
+        <button id="like-${pos
