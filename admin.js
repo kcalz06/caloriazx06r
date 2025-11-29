@@ -81,36 +81,6 @@ async function newPost() {
 }
 
 // ----------------------
-// LOAD POSTS
-// ----------------------
-async function loadPosts() {
-  try {
-    const { data: posts } = await db
-      .from("posts")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    const container = document.getElementById("posts");
-    if (!container) return;
-    container.innerHTML = '';
-
-    posts.forEach(post => {
-      const wrapper = document.createElement("div");
-      wrapper.className = "post";
-      wrapper.id = `post-${post.id}`;
-      wrapper.innerHTML = `
-        <div class="post-meta">${new Date(post.created_at).toLocaleString()}</div>
-        <div class="post-title">${post.title}</div>
-        <div class="post-body">${post.content}</div>
-      `;
-      container.appendChild(wrapper);
-    });
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-// ----------------------
 // NEW POST BUTTON
 // ----------------------
 document.getElementById('new-post-btn')?.addEventListener('click', () => {
